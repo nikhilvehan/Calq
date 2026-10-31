@@ -1,0 +1,2448 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-mode="standard">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A tactile, retro-modern minimalist calculator with Light and Dark themes, Standard and Scientific modes, tactile key acoustics, and a high-precision expression engine." />
+  <title>MONO // Tactile Minimalist Calculator</title>
+
+  <!-- Geometric Display Fonts matching the reference aesthetic -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Orbitron:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ==========================================================================
+       1. DESIGN SYSTEM & CSS CUSTOM PROPERTIES
+       ========================================================================== */
+    :root {
+      /* Page Environment */
+      --page-bg: #D3D3D3;
+      --page-text: #2C2C2C;
+      --page-muted: #5A5A5A;
+      --control-surface: rgba(255, 255, 255, 0.42);
+      --control-border: rgba(0, 0, 0, 0.09);
+      --control-active-bg: #202020;
+      --control-active-text: #F0E9D7;
+
+      /* Light Theme Calculator (Left Reference) */
+      --calc-body: #E6DFCE;
+      --calc-body-highlight: rgba(255, 255, 255, 0.65);
+      --calc-body-shadow:
+        0 26px 52px -12px rgba(0, 0, 0, 0.22),
+        0 10px 22px -6px rgba(0, 0, 0, 0.14),
+        inset 0 1px 1px rgba(255, 255, 255, 0.7),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.06);
+
+      /* Display Panel (Inverted contrast relative to body) */
+      --display-bg: #202020;
+      --display-text-primary: #F0E9D7;
+      --display-text-secondary: rgba(240, 233, 215, 0.78);
+      --display-badge-bg: rgba(240, 233, 215, 0.12);
+      --display-badge-text: #F0E9D7;
+      --display-shadow:
+        inset 0 3px 6px rgba(0, 0, 0, 0.45),
+        0 1px 0 rgba(255, 255, 255, 0.55);
+
+      /* Tactile Key Palette (Faithful to Reference) */
+      --btn-num-bg: #ED554B;
+      --btn-num-hover: #F2635A;
+      --btn-num-active: #DC4940;
+
+      --btn-op-bg: #7191AC;
+      --btn-op-hover: #7E9DB8;
+      --btn-op-active: #62819B;
+
+      --btn-util-bg: #928476;
+      --btn-util-hover: #9E9082;
+      --btn-util-active: #827567;
+
+      --btn-sci-bg: #A59889;
+      --btn-sci-hover: #B1A495;
+      --btn-sci-active: #948778;
+
+      /* Button Typography (Light theme uses deep charcoal text on keys per reference) */
+      --btn-text-color: #222222;
+
+      /* Tactile Button Shadows */
+      --btn-shadow:
+        0 4px 7px rgba(0, 0, 0, 0.18),
+        0 1px 2px rgba(0, 0, 0, 0.12),
+        inset 0 1px 1px rgba(255, 255, 255, 0.28);
+      --btn-shadow-hover:
+        0 5px 9px rgba(0, 0, 0, 0.22),
+        0 2px 3px rgba(0, 0, 0, 0.14),
+        inset 0 1px 1px rgba(255, 255, 255, 0.35);
+      --btn-shadow-active:
+        0 1px 2px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(0, 0, 0, 0.25);
+
+      /* Divider */
+      --sci-divider: rgba(34, 34, 34, 0.1);
+
+      /* Dimensions & Spacing */
+      --shell-radius: 26px;
+      --display-radius: 16px;
+      --shell-padding: 18px;
+      --grid-gap: 12px;
+      --btn-size: 56px;
+
+      /* Typography */
+      --font-display: 'Orbitron', 'Chakra Petch', monospace;
+      --font-keys: 'Orbitron', 'Chakra Petch', sans-serif;
+      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    /* ==========================================================================
+       2. DARK THEME OVERRIDES (Right Reference)
+       ========================================================================== */
+    [data-theme="dark"] {
+      --page-bg: #C8C8C8;
+      --page-text: #1F1F1F;
+      --page-muted: #4F4F4F;
+      --control-surface: rgba(32, 32, 32, 0.1);
+      --control-border: rgba(0, 0, 0, 0.12);
+      --control-active-bg: #202020;
+      --control-active-text: #F0E9D7;
+
+      /* Dark Theme Calculator Body */
+      --calc-body: #202020;
+      --calc-body-highlight: rgba(255, 255, 255, 0.08);
+      --calc-body-shadow:
+        0 28px 56px -12px rgba(0, 0, 0, 0.34),
+        0 12px 24px -6px rgba(0, 0, 0, 0.22),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.5);
+
+      /* Warm Beige Display in Dark Mode (per reference) */
+      --display-bg: #E5DFCE;
+      --display-text-primary: #222222;
+      --display-text-secondary: rgba(34, 34, 34, 0.75);
+      --display-badge-bg: rgba(34, 34, 34, 0.1);
+      --display-badge-text: #222222;
+      --display-shadow:
+        inset 0 2px 5px rgba(0, 0, 0, 0.18),
+        0 1px 0 rgba(255, 255, 255, 0.06);
+
+      /* Button Typography (Dark theme uses warm cream text on keys per reference) */
+      --btn-text-color: #F0E9D7;
+
+      --btn-sci-bg: #7A6E63;
+      --btn-sci-hover: #877A6E;
+      --btn-sci-active: #6B6056;
+
+      /* Shadows on dark charcoal shell */
+      --btn-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.45),
+        0 1px 2px rgba(0, 0, 0, 0.35),
+        inset 0 1px 1px rgba(255, 255, 255, 0.22);
+      --btn-shadow-hover:
+        0 6px 12px rgba(0, 0, 0, 0.52),
+        0 2px 4px rgba(0, 0, 0, 0.4),
+        inset 0 1px 1px rgba(255, 255, 255, 0.28);
+      --btn-shadow-active:
+        0 1px 2px rgba(0, 0, 0, 0.5),
+        inset 0 2px 5px rgba(0, 0, 0, 0.35);
+
+      --sci-divider: rgba(240, 233, 215, 0.12);
+    }
+
+    /* ==========================================================================
+       3. RESET & BASE LAYOUT
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      min-height: 100%;
+    }
+
+    body {
+      font-family: var(--font-ui);
+      background-color: var(--page-bg);
+      color: var(--page-text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px 16px;
+      transition: background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1), color 0.35s ease;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* ==========================================================================
+       4. TOP HARDWARE CONTROL BAR
+       ========================================================================== */
+    .workspace {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      width: 100%;
+      max-width: 720px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      z-index: 10;
+    }
+
+    .segmented-control {
+      display: inline-flex;
+      align-items: center;
+      background: var(--control-surface);
+      border: 1px solid var(--control-border);
+      border-radius: 999px;
+      padding: 3px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .seg-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--page-text);
+      font-family: var(--font-ui);
+      font-size: 0.76rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 6px 13px;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.22s ease, color 0.22s ease, transform 0.15s ease;
+    }
+
+    .seg-btn:hover:not([aria-pressed="true"]) {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .seg-btn[aria-pressed="true"] {
+      background: var(--control-active-bg);
+      color: var(--control-active-text);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+    }
+
+    .seg-btn:focus-visible {
+      outline: 2px solid var(--btn-op-bg);
+      outline-offset: 2px;
+    }
+
+    .sound-icon {
+      width: 13px;
+      height: 13px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Angle unit pill only visible in scientific mode */
+    .angle-control {
+      display: none;
+    }
+
+    [data-mode="scientific"] .angle-control {
+      display: inline-flex;
+    }
+
+    .theme-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+    }
+
+    .theme-dot--light {
+      background: #E6DFCE;
+    }
+
+    .theme-dot--dark {
+      background: #202020;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* ==========================================================================
+       5. CALCULATOR OUTER BODY (HARDWARE SHELL)
+       ========================================================================== */
+    .calculator {
+      background-color: var(--calc-body);
+      border-radius: var(--shell-radius);
+      padding: var(--shell-padding);
+      box-shadow: var(--calc-body-shadow);
+      width: 100%;
+      max-width: 296px;
+      transition:
+        background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    [data-mode="scientific"] .calculator {
+      max-width: 588px;
+    }
+
+    /* ==========================================================================
+       6. DISPLAY PANEL
+       ========================================================================== */
+    .display {
+      background-color: var(--display-bg);
+      color: var(--display-text-primary);
+      border-radius: var(--display-radius);
+      padding: 14px 18px 14px 18px;
+      margin-bottom: 22px;
+      min-height: 132px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--display-shadow);
+      transition:
+        background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.35s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Top utility row inside display (status badge + subtle backspace trigger) */
+    .display-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 22px;
+    }
+
+    .display-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .display-badge {
+      font-family: var(--font-display);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--display-badge-bg);
+      color: var(--display-badge-text);
+      text-transform: uppercase;
+      opacity: 0;
+      transform: translateY(-2px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+    }
+
+    [data-mode="scientific"] .display-badge--angle,
+    .display-badge--visible {
+      opacity: 0.85;
+      transform: translateY(0);
+    }
+
+    .display-backspace {
+      appearance: none;
+      border: none;
+      background: var(--display-badge-bg);
+      color: var(--display-text-secondary);
+      font-family: var(--font-ui);
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      opacity: 0.72;
+      transition: opacity 0.15s ease, transform 0.1s ease, background-color 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .display-backspace:hover {
+      opacity: 1;
+    }
+
+    .display-backspace:active {
+      transform: scale(0.94);
+    }
+
+    .display-backspace:focus-visible {
+      outline: 2px solid var(--btn-op-bg);
+      outline-offset: 2px;
+    }
+
+    /* Lower right content area matching the reference image:
+       Large result line above, smaller expression line directly beneath it */
+    .display-content {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-end;
+      text-align: right;
+      gap: 6px;
+      width: 100%;
+      margin-top: auto;
+    }
+
+    .display-result {
+      font-family: var(--font-display);
+      font-size: 2.35rem;
+      font-weight: 500;
+      line-height: 1.08;
+      letter-spacing: 0.03em;
+      color: var(--display-text-primary);
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      scrollbar-width: none;
+      transition: font-size 0.15s ease, color 0.2s ease;
+    }
+
+    .display-result::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Dynamic font scaling classes for long numbers */
+    .display-result.size-md {
+      font-size: 1.85rem;
+    }
+
+    .display-result.size-sm {
+      font-size: 1.42rem;
+    }
+
+    .display-result.size-xs {
+      font-size: 1.12rem;
+    }
+
+    .display-result.is-error {
+      color: #ED554B;
+      font-size: 1.18rem;
+      letter-spacing: 0.02em;
+    }
+
+    [data-theme="dark"] .display-result.is-error {
+      color: #C93B32;
+    }
+
+    .display-expression {
+      font-family: var(--font-display);
+      font-size: 0.86rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--display-text-secondary);
+      min-height: 1.2em;
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      scrollbar-width: none;
+    }
+
+    .display-expression::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ==========================================================================
+       7. KEYPAD LAYOUT (STANDARD + SCIENTIFIC EXPANSION)
+       ========================================================================== */
+    .keypad-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    [data-mode="scientific"] .keypad-container {
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    /* Scientific Keypad (Hidden in Standard Mode) */
+    .keypad-scientific {
+      display: none;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: var(--btn-size);
+      gap: var(--grid-gap);
+      position: relative;
+    }
+
+    [data-mode="scientific"] .keypad-scientific {
+      display: grid;
+    }
+
+    /* Subtle tactile vertical divider between scientific and standard pads on desktop */
+    [data-mode="scientific"] .keypad-scientific::after {
+      content: "";
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      right: -12.5px;
+      width: 1px;
+      background: var(--sci-divider);
+    }
+
+    /* Standard 4x5 Keypad (Exact match to reference) */
+    .keypad-standard {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: var(--btn-size);
+      gap: var(--grid-gap);
+    }
+
+    /* ==========================================================================
+       8. TACTILE BUTTON STYLING
+       ========================================================================== */
+    .calc-btn {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      width: 100%;
+      height: var(--btn-size);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-keys);
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--btn-text-color);
+      box-shadow: var(--btn-shadow);
+      cursor: pointer;
+      position: relative;
+      transition:
+        background-color 0.18s ease,
+        color 0.3s ease,
+        transform 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.15s ease;
+    }
+
+    /* Category 1: Numeric Buttons (Muted Coral Red) */
+    .calc-btn--num {
+      background-color: var(--btn-num-bg);
+    }
+    .calc-btn--num:hover {
+      background-color: var(--btn-num-hover);
+      box-shadow: var(--btn-shadow-hover);
+    }
+    .calc-btn--num:active,
+    .calc-btn--num.is-pressed {
+      background-color: var(--btn-num-active);
+      box-shadow: var(--btn-shadow-active);
+      transform: translateY(2px);
+    }
+
+    /* Category 2: Operator & Equals Buttons (Muted Slate Blue) */
+    .calc-btn--op {
+      background-color: var(--btn-op-bg);
+      font-size: 1.15rem;
+    }
+    .calc-btn--op:hover {
+      background-color: var(--btn-op-hover);
+      box-shadow: var(--btn-shadow-hover);
+    }
+    .calc-btn--op:active,
+    .calc-btn--op.is-pressed {
+      background-color: var(--btn-op-active);
+      box-shadow: var(--btn-shadow-active);
+      transform: translateY(2px);
+    }
+
+    /* Active operator indicator when chaining operations */
+    .calc-btn--op.is-active-op {
+      outline: 2px solid var(--display-bg);
+      outline-offset: -3px;
+    }
+
+    /* Category 3: Utility Buttons (Warm Taupe) */
+    .calc-btn--util {
+      background-color: var(--btn-util-bg);
+      font-size: 0.92rem;
+      letter-spacing: 0.04em;
+    }
+    .calc-btn--util:hover {
+      background-color: var(--btn-util-hover);
+      box-shadow: var(--btn-shadow-hover);
+    }
+    .calc-btn--util:active,
+    .calc-btn--util.is-pressed {
+      background-color: var(--btn-util-active);
+      box-shadow: var(--btn-shadow-active);
+      transform: translateY(2px);
+    }
+
+    /* Category 4: Scientific Function Buttons (Warm Muted Stone/Taupe) */
+    .calc-btn--sci {
+      background-color: var(--btn-sci-bg);
+      font-family: var(--font-ui);
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .calc-btn--sci:hover {
+      background-color: var(--btn-sci-hover);
+      box-shadow: var(--btn-shadow-hover);
+    }
+    .calc-btn--sci:active,
+    .calc-btn--sci.is-pressed {
+      background-color: var(--btn-sci-active);
+      box-shadow: var(--btn-shadow-active);
+      transform: translateY(2px);
+    }
+
+    /* Elongated Pill Zero Button */
+    .calc-btn--zero {
+      grid-column: span 2;
+    }
+
+    /* Slashed Zero graphic matching the reference image's distinctive 0 key */
+    .slashed-zero {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 16px;
+      border: 2px solid currentColor;
+      border-radius: 3px;
+      position: relative;
+    }
+
+    .slashed-zero::after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 1.8px;
+      background-color: currentColor;
+      transform: rotate(-48deg);
+    }
+
+    /* Accessible Focus Ring */
+    .calc-btn:focus-visible {
+      outline: 2.5px solid var(--display-bg);
+      outline-offset: 2px;
+    }
+
+    sup {
+      font-size: 0.65em;
+      line-height: 0;
+      position: relative;
+      top: -0.35em;
+    }
+
+    /* ==========================================================================
+       9. FOOTER & SHORTCUTS MODAL
+       ========================================================================== */
+    .footer-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      font-size: 0.74rem;
+      color: var(--page-muted);
+      margin-top: 2px;
+    }
+
+    .footer-link {
+      appearance: none;
+      border: none;
+      background: none;
+      color: var(--page-text);
+      font-family: var(--font-ui);
+      font-size: 0.74rem;
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+      opacity: 0.75;
+      transition: opacity 0.2s ease;
+    }
+
+    .footer-link:hover {
+      opacity: 1;
+    }
+
+    /* Modal for Keyboard Shortcuts */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+    }
+
+    .modal-backdrop.is-open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #F4EFE3;
+      color: #202020;
+      border-radius: 20px;
+      max-width: 480px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .modal-close {
+      border: none;
+      background: rgba(0, 0, 0, 0.08);
+      color: #202020;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .shortcut-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+    }
+
+    .shortcut-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+    }
+
+    .kbd {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      background: #202020;
+      color: #F0E9D7;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* ==========================================================================
+       10. RESPONSIVE BREAKPOINTS
+       ========================================================================== */
+    @media (max-width: 639px) {
+      body {
+        padding: 16px 12px;
+      }
+
+      /* On mobile, Scientific mode stacks cleanly in a 4-column layout above Standard */
+      [data-mode="scientific"] .calculator {
+        max-width: 336px;
+      }
+
+      [data-mode="scientific"] .keypad-container {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      [data-mode="scientific"] .keypad-scientific {
+        grid-auto-rows: 46px;
+        gap: 10px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--sci-divider);
+      }
+
+      [data-mode="scientific"] .keypad-scientific::after {
+        display: none;
+      }
+
+      [data-mode="scientific"] .keypad-scientific .calc-btn {
+        height: 46px;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 360px) {
+      :root {
+        --shell-padding: 14px;
+        --grid-gap: 9px;
+        --btn-size: 50px;
+      }
+
+      .display {
+        min-height: 116px;
+        padding: 12px 14px;
+        margin-bottom: 16px;
+      }
+
+      .display-result {
+        font-size: 2rem;
+      }
+    }
+
+    /* Respect Reduced Motion Preferences */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="workspace" aria-label="Calculator Workspace">
+
+    <!-- Minimalist Hardware Control Bar -->
+    <header class="toolbar" role="toolbar" aria-label="Calculator preferences">
+      <!-- Mode Selector: Standard vs Scientific -->
+      <div class="segmented-control" role="group" aria-label="Calculator Mode">
+        <button type="button" class="seg-btn" id="modeStandardBtn" data-mode-select="standard" aria-pressed="true">
+          Standard
+        </button>
+        <button type="button" class="seg-btn" id="modeScientificBtn" data-mode-select="scientific" aria-pressed="false">
+          Scientific
+        </button>
+      </div>
+
+      <!-- Angle Unit Selector (Scientific Mode) -->
+      <div class="segmented-control angle-control" id="angleControlGroup" role="group" aria-label="Trigonometric Angle Unit">
+        <button type="button" class="seg-btn" id="unitDegBtn" data-angle-select="DEG" aria-pressed="true">
+          DEG
+        </button>
+        <button type="button" class="seg-btn" id="unitRadBtn" data-angle-select="RAD" aria-pressed="false">
+          RAD
+        </button>
+      </div>
+
+      <!-- Theme Selector: Light vs Dark -->
+      <div class="segmented-control" role="group" aria-label="Color Theme">
+        <button type="button" class="seg-btn" id="themeLightBtn" data-theme-select="light" aria-pressed="true">
+          <span class="theme-dot theme-dot--light" aria-hidden="true"></span>
+          Light
+        </button>
+        <button type="button" class="seg-btn" id="themeDarkBtn" data-theme-select="dark" aria-pressed="false">
+          <span class="theme-dot theme-dot--dark" aria-hidden="true"></span>
+          Dark
+        </button>
+      </div>
+
+      <!-- Tactile Key Click Sound Toggle -->
+      <div class="segmented-control" role="group" aria-label="Key Click Sound">
+        <button type="button" class="seg-btn" id="soundToggleBtn" aria-pressed="true" title="Toggle Tactile Click Sound (M)">
+          <svg class="sound-icon" id="soundIconOn" viewBox="0 0 24 24" aria-hidden="true">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <svg class="sound-icon" id="soundIconOff" viewBox="0 0 24 24" aria-hidden="true" style="display: none;">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+          <span id="soundToggleLabel">Click</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Primary Calculator Body -->
+    <section class="calculator" aria-label="Calculator">
+
+      <!-- Contrasting Display Panel -->
+      <div class="display" role="region" aria-live="polite" aria-label="Calculator Display">
+        <div class="display-header">
+          <div class="display-badges">
+            <span class="display-badge display-badge--angle" id="displayAngleBadge">DEG</span>
+            <span class="display-badge" id="displayStatusBadge">ANS</span>
+          </div>
+          <button
+            type="button"
+            class="display-backspace"
+            id="backspaceBtn"
+            data-action="backspace"
+            aria-label="Delete last character (Backspace)"
+            title="Backspace (⌫)"
+          >
+            ⌫
+          </button>
+        </div>
+
+        <div class="display-content">
+          <!-- Main Result / Active Value (matches the '75' in the reference image) -->
+          <output class="display-result" id="displayPrimary" for="displaySecondary">75</output>
+          <!-- Secondary Expression Line (matches the '28 + 67 - 20' below in the reference image) -->
+          <div class="display-expression" id="displaySecondary">28 + 67 - 20</div>
+        </div>
+      </div>
+
+      <!-- Keypad Container -->
+      <div class="keypad-container">
+
+        <!-- Scientific Extension Keypad (20 buttons: 4 cols × 5 rows) -->
+        <div class="keypad-scientific" id="scientificPad" aria-label="Scientific Functions">
+          <!-- Row 1 -->
+          <button type="button" class="calc-btn calc-btn--sci" data-action="paren-open" aria-label="Left Parenthesis">(</button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="paren-close" aria-label="Right Parenthesis">)</button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="func" data-func="abs" aria-label="Absolute Value">|x|</button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="reciprocal" aria-label="Reciprocal 1 divided by x">1/x</button>
+
+          <!-- Row 2 -->
+          <button type="button" class="calc-btn calc-btn--sci" data-action="func" data-func="sin" aria-label="Sine">sin</button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="func" data-func="cos" aria-label="Cosine">cos</button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="func" data-func="tan" aria-label="Tangent">tan</button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="func" data-func="sqrt" aria-label="Square Root">√x</button>
+
+          <!-- Row 3 -->
+          <button type="button" class="calc-btn calc-btn--sci" data-action="func" data-func="asin" aria-label="Inverse Sine">sin<sup>-1</sup></button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="func" data-func="acos" aria-label="Inverse Cosine">cos<sup>-1</sup></button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="func" data-func="atan" aria-label="Inverse Tangent">tan<sup>-1</sup></button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="postfix" data-postfix="²" aria-label="Square">x<sup>2</sup></button>
+
+          <!-- Row 4 -->
+          <button type="button" class="calc-btn calc-btn--sci" data-action="func" data-func="ln" aria-label="Natural Logarithm">ln</button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="func" data-func="log" aria-label="Base 10 Logarithm">log</button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="postfix" data-postfix="!" aria-label="Factorial">x!</button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="postfix" data-postfix="³" aria-label="Cube">x<sup>3</sup></button>
+
+          <!-- Row 5 -->
+          <button type="button" class="calc-btn calc-btn--sci" data-action="constant" data-constant="π" aria-label="Pi Constant">π</button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="constant" data-constant="e" aria-label="Euler's Constant e">e</button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="exp-notation" aria-label="Scientific Notation Exponent">EXP</button>
+          <button type="button" class="calc-btn calc-btn--sci" data-action="operator" data-operator="^" aria-label="Power x raised to y">x<sup>y</sup></button>
+        </div>
+
+        <!-- Standard Keypad (4 cols × 5 rows — Faithful to Reference) -->
+        <div class="keypad-standard" aria-label="Standard Keypad">
+          <!-- Row 1: Utility + Divide -->
+          <button type="button" class="calc-btn calc-btn--util" id="clearBtn" data-action="clear" aria-label="All Clear">AC</button>
+          <button type="button" class="calc-btn calc-btn--util" data-action="negate" aria-label="Toggle Positive or Negative">+/-</button>
+          <button type="button" class="calc-btn calc-btn--util" data-action="percent" aria-label="Percentage">%</button>
+          <button type="button" class="calc-btn calc-btn--op" data-action="operator" data-operator="÷" aria-label="Divide">÷</button>
+
+          <!-- Row 2: 7 8 9 Multiply -->
+          <button type="button" class="calc-btn calc-btn--num" data-action="digit" data-digit="7" aria-label="7">7</button>
+          <button type="button" class="calc-btn calc-btn--num" data-action="digit" data-digit="8" aria-label="8">8</button>
+          <button type="button" class="calc-btn calc-btn--num" data-action="digit" data-digit="9" aria-label="9">9</button>
+          <button type="button" class="calc-btn calc-btn--op" data-action="operator" data-operator="×" aria-label="Multiply">×</button>
+
+          <!-- Row 3: 4 5 6 Subtract -->
+          <button type="button" class="calc-btn calc-btn--num" data-action="digit" data-digit="4" aria-label="4">4</button>
+          <button type="button" class="calc-btn calc-btn--num" data-action="digit" data-digit="5" aria-label="5">5</button>
+          <button type="button" class="calc-btn calc-btn--num" data-action="digit" data-digit="6" aria-label="6">6</button>
+          <button type="button" class="calc-btn calc-btn--op" data-action="operator" data-operator="-" aria-label="Subtract">-</button>
+
+          <!-- Row 4: 1 2 3 Add -->
+          <button type="button" class="calc-btn calc-btn--num" data-action="digit" data-digit="1" aria-label="1">1</button>
+          <button type="button" class="calc-btn calc-btn--num" data-action="digit" data-digit="2" aria-label="2">2</button>
+          <button type="button" class="calc-btn calc-btn--num" data-action="digit" data-digit="3" aria-label="3">3</button>
+          <button type="button" class="calc-btn calc-btn--op" data-action="operator" data-operator="+" aria-label="Add">+</button>
+
+          <!-- Row 5: Elongated 0, Decimal, Equals -->
+          <button type="button" class="calc-btn calc-btn--num calc-btn--zero" data-action="digit" data-digit="0" aria-label="0">
+            <span class="slashed-zero" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="calc-btn calc-btn--num" data-action="decimal" aria-label="Decimal Point">.</button>
+          <button type="button" class="calc-btn calc-btn--op" data-action="calculate" aria-label="Equals">=</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Subtle Footer Info -->
+    <footer class="footer-meta">
+      <span>Tactile Audio &amp; Keyboard Ready</span>
+      <span>•</span>
+      <button type="button" class="footer-link" id="openShortcutsBtn">Keyboard Shortcuts</button>
+    </footer>
+
+  </main>
+
+  <!-- Keyboard Shortcuts Reference Modal -->
+  <div class="modal-backdrop" id="shortcutsModal" role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title" id="shortcutsTitle">KEYBOARD CONTROLS</h2>
+        <button type="button" class="modal-close" id="closeShortcutsBtn" aria-label="Close modal">✕</button>
+      </div>
+      <div class="shortcut-grid">
+        <div class="shortcut-item"><span>Numbers</span><span class="kbd">0 – 9</span></div>
+        <div class="shortcut-item"><span>Operators</span><span class="kbd">+ - * /</span></div>
+        <div class="shortcut-item"><span>Calculate</span><span class="kbd">Enter / =</span></div>
+        <div class="shortcut-item"><span>Backspace</span><span class="kbd">Backspace</span></div>
+        <div class="shortcut-item"><span>Clear All</span><span class="kbd">Esc</span></div>
+        <div class="shortcut-item"><span>Parentheses</span><span class="kbd">( )</span></div>
+        <div class="shortcut-item"><span>Power / Factorial</span><span class="kbd">^ / !</span></div>
+        <div class="shortcut-item"><span>Toggle Click Sound</span><span class="kbd">M</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       APPLICATION LOGIC, TACTILE SOUND SYNTHESIZER & EXPRESSION ENGINE
+       ========================================================================== -->
+  <script>
+    (() => {
+      'use strict';
+
+      /* ------------------------------------------------------------------------
+         1. STATE & PERSISTENCE CONFIGURATION
+         ------------------------------------------------------------------------ */
+      const STORAGE_KEYS = {
+        THEME: 'mono_calc_theme_v1',
+        MODE: 'mono_calc_mode_v1',
+        ANGLE: 'mono_calc_angle_v1',
+        SOUND: 'mono_calc_sound_v1'
+      };
+
+      const state = {
+        // Preloaded with the exact showcase calculation from the reference image
+        expression: '',
+        lastExpression: '28 + 67 - 20',
+        result: '75',
+        justEvaluated: true,
+        isError: false,
+        theme: 'light',
+        mode: 'standard',
+        angleUnit: 'DEG',
+        soundEnabled: true
+      };
+
+      /* ------------------------------------------------------------------------
+         2. TACTILE MECHANICAL KEY SOUND SYNTHESIZER (WEB AUDIO API)
+         ------------------------------------------------------------------------ */
+      const SoundEngine = (() => {
+        let ctx = null;
+        let noiseBuffer = null;
+
+        function ensureContext() {
+          if (!ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return null;
+            ctx = new AudioCtx();
+
+            // Pre-build a 40ms high-resolution white-noise buffer for mechanical switch transients
+            const sampleRate = ctx.sampleRate;
+            const frameCount = Math.floor(sampleRate * 0.04);
+            noiseBuffer = ctx.createBuffer(1, frameCount, sampleRate);
+            const channelData = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < frameCount; i++) {
+              // Exponentially decaying envelope baked into the noise sample
+              const env = Math.pow(1 - i / frameCount, 2.2);
+              channelData[i] = (Math.random() * 2 - 1) * env;
+            }
+          }
+          if (ctx.state === 'suspended') {
+            ctx.resume().catch(() => {});
+          }
+          return ctx;
+        }
+
+        /**
+         * Synthesizes a realistic physical calculator key click.
+         * Combines a warm low-mid body "thock" with a filtered mechanical switch transient.
+         *
+         * @param {'num' | 'op' | 'util' | 'sci' | 'equals' | 'switch'} category
+         */
+        function playKeyClick(category = 'num') {
+          if (!state.soundEnabled) return;
+          const audioCtx = ensureContext();
+          if (!audioCtx) return;
+
+          const now = audioCtx.currentTime;
+
+          // Subtle natural micro-pitch variation (+/- 2.5%) so repeated taps feel organic
+          const jitter = 0.975 + Math.random() * 0.05;
+
+          // Acoustic profile tuned per button category
+          const profiles = {
+            num:    { startFreq: 215, endFreq: 56, duration: 0.032, bodyGain: 0.24, filterFreq: 2200, clickGain: 0.16 },
+            op:     { startFreq: 185, endFreq: 48, duration: 0.036, bodyGain: 0.26, filterFreq: 1900, clickGain: 0.17 },
+            util:   { startFreq: 250, endFreq: 68, duration: 0.030, bodyGain: 0.21, filterFreq: 2550, clickGain: 0.15 },
+            sci:    { startFreq: 235, endFreq: 62, duration: 0.028, bodyGain: 0.20, filterFreq: 2400, clickGain: 0.14 },
+            equals: { startFreq: 165, endFreq: 44, duration: 0.044, bodyGain: 0.30, filterFreq: 1750, clickGain: 0.20 },
+            switch: { startFreq: 310, endFreq: 95, duration: 0.022, bodyGain: 0.15, filterFreq: 3100, clickGain: 0.12 }
+          };
+
+          const p = profiles[category] || profiles.num;
+
+          // Layer 1: Keycap Bottom-Out Body Resonance (Warm Triangle/Sine Thock)
+          const osc = audioCtx.createOscillator();
+          const bodyGain = audioCtx.createGain();
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(p.startFreq * jitter, now);
+          osc.frequency.exponentialRampToValueAtTime(p.endFreq * jitter, now + p.duration);
+
+          bodyGain.gain.setValueAtTime(0.001, now);
+          bodyGain.gain.linearRampToValueAtTime(p.bodyGain, now + 0.002);
+          bodyGain.gain.exponentialRampToValueAtTime(0.0008, now + p.duration);
+
+          osc.connect(bodyGain);
+          bodyGain.connect(audioCtx.destination);
+
+          osc.start(now);
+          osc.stop(now + p.duration + 0.005);
+
+          // Layer 2: Tactile Switch Contact Transient (Bandpass-Filtered Crisp Click)
+          if (noiseBuffer) {
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = noiseBuffer;
+
+            const bandpass = audioCtx.createBiquadFilter();
+            bandpass.type = 'bandpass';
+            bandpass.frequency.setValueAtTime(p.filterFreq * jitter, now);
+            bandpass.Q.setValueAtTime(2.4, now);
+
+            const clickGain = audioCtx.createGain();
+            clickGain.gain.setValueAtTime(p.clickGain, now);
+            clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.016);
+
+            noise.connect(bandpass);
+            bandpass.connect(clickGain);
+            clickGain.connect(audioCtx.destination);
+
+            noise.start(now);
+            noise.stop(now + 0.018);
+          }
+
+          // Layer 3: Subtle secondary tactile release snap for the '=' key
+          if (category === 'equals') {
+            const snapOsc = audioCtx.createOscillator();
+            const snapGain = audioCtx.createGain();
+            const snapStart = now + 0.014;
+
+            snapOsc.type = 'sine';
+            snapOsc.frequency.setValueAtTime(340 * jitter, snapStart);
+            snapOsc.frequency.exponentialRampToValueAtTime(110 * jitter, snapStart + 0.025);
+
+            snapGain.gain.setValueAtTime(0.11, snapStart);
+            snapGain.gain.exponentialRampToValueAtTime(0.0008, snapStart + 0.026);
+
+            snapOsc.connect(snapGain);
+            snapGain.connect(audioCtx.destination);
+
+            snapOsc.start(snapStart);
+            snapOsc.stop(snapStart + 0.028);
+          }
+        }
+
+        return { playKeyClick };
+      })();
+
+      /* ------------------------------------------------------------------------
+         3. DOM ELEMENTS
+         ------------------------------------------------------------------------ */
+      const rootEl = document.documentElement;
+      const displayPrimary = document.getElementById('displayPrimary');
+      const displaySecondary = document.getElementById('displaySecondary');
+      const displayAngleBadge = document.getElementById('displayAngleBadge');
+      const displayStatusBadge = document.getElementById('displayStatusBadge');
+      const clearBtn = document.getElementById('clearBtn');
+
+      const themeBtns = document.querySelectorAll('[data-theme-select]');
+      const modeBtns = document.querySelectorAll('[data-mode-select]');
+      const angleBtns = document.querySelectorAll('[data-angle-select]');
+      const calcBtns = document.querySelectorAll('.calc-btn');
+
+      const soundToggleBtn = document.getElementById('soundToggleBtn');
+      const soundIconOn = document.getElementById('soundIconOn');
+      const soundIconOff = document.getElementById('soundIconOff');
+      const soundToggleLabel = document.getElementById('soundToggleLabel');
+
+      const shortcutsModal = document.getElementById('shortcutsModal');
+      const openShortcutsBtn = document.getElementById('openShortcutsBtn');
+      const closeShortcutsBtn = document.getElementById('closeShortcutsBtn');
+
+      /* ------------------------------------------------------------------------
+         4. SAFE MATHEMATICAL PARSER & EVALUATOR (NO eval() / NO new Function())
+         ------------------------------------------------------------------------ */
+      const FUNCTIONS = new Set(['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'ln', 'sqrt', 'abs']);
+      const BINARY_OPS = new Set(['+', '-', '×', '÷', '^']);
+      const POSTFIX_OPS = new Set(['²', '³', '!', '%']);
+
+      /**
+       * Cleans floating-point inaccuracies (e.g., 0.1 + 0.2 -> 0.3, sin(30°) -> 0.5)
+       */
+      function cleanPrecision(num) {
+        if (!Number.isFinite(num)) return num;
+        if (Math.abs(num) < 1e-14) return 0;
+        return parseFloat(num.toPrecision(12));
+      }
+
+      /**
+       * Computes n! for non-negative integers up to 170
+       */
+      function factorial(n) {
+        if (n < 0 || !Number.isInteger(n)) {
+          throw new Error('Invalid input (n!)');
+        }
+        if (n > 170) {
+          throw new Error('Overflow');
+        }
+        let acc = 1;
+        for (let i = 2; i <= n; i++) {
+          acc *= i;
+        }
+        return acc;
+      }
+
+      /**
+       * Tokenizes a mathematical expression string into structured tokens
+       */
+      function tokenize(rawExpr) {
+        const tokens = [];
+        const str = rawExpr.replace(/\s+/g, '');
+        let i = 0;
+
+        while (i < str.length) {
+          const ch = str[i];
+
+          // 1. Numbers (including scientific notation like 1.5e+3 or 1.5e-2)
+          if (/\d/.test(ch) || (ch === '.' && /\d/.test(str[i + 1] || ''))) {
+            let numStr = '';
+            let dotCount = 0;
+
+            while (i < str.length && (/\d/.test(str[i]) || str[i] === '.')) {
+              if (str[i] === '.') {
+                dotCount++;
+                if (dotCount > 1) throw new Error('Syntax Error');
+              }
+              numStr += str[i++];
+            }
+
+            // Scientific E notation suffix (e.g. 2.5E3 or 2.5E-3)
+            if (i < str.length && str[i] === 'E') {
+              numStr += 'e';
+              i++;
+              if (i < str.length && (str[i] === '+' || str[i] === '-')) {
+                numStr += str[i++];
+              }
+              let expDigits = '';
+              while (i < str.length && /\d/.test(str[i])) {
+                expDigits += str[i++];
+              }
+              if (!expDigits) throw new Error('Syntax Error');
+              numStr += expDigits;
+            }
+
+            const parsed = Number(numStr);
+            if (Number.isNaN(parsed)) throw new Error('Syntax Error');
+            tokens.push({ type: 'NUMBER', value: parsed });
+            continue;
+          }
+
+          // 2. Named constants (π, e)
+          if (ch === 'π') {
+            tokens.push({ type: 'NUMBER', value: Math.PI });
+            i++;
+            continue;
+          }
+          if (ch === 'e' && !/[a-zA-Z]/.test(str[i + 1] || '')) {
+            tokens.push({ type: 'NUMBER', value: Math.E });
+            i++;
+            continue;
+          }
+
+          // 3. Prefix √ symbol
+          if (ch === '√') {
+            tokens.push({ type: 'FUNC', value: 'sqrt' });
+            i++;
+            continue;
+          }
+
+          // 4. Alphabetic Function Identifiers (sin, cos, tan, asin, acos, atan, log, ln, sqrt, abs)
+          if (/[a-z]/i.test(ch)) {
+            let ident = '';
+            while (i < str.length && /[a-z]/i.test(str[i])) {
+              ident += str[i++];
+            }
+            const lower = ident.toLowerCase();
+            if (FUNCTIONS.has(lower)) {
+              tokens.push({ type: 'FUNC', value: lower });
+            } else {
+              throw new Error('Syntax Error');
+            }
+            continue;
+          }
+
+          // 5. Parentheses
+          if (ch === '(') {
+            tokens.push({ type: 'LPAREN', value: '(' });
+            i++;
+            continue;
+          }
+          if (ch === ')') {
+            tokens.push({ type: 'RPAREN', value: ')' });
+            i++;
+            continue;
+          }
+
+          // 6. Postfix Operators (², ³, !, %)
+          if (POSTFIX_OPS.has(ch)) {
+            tokens.push({ type: 'POSTFIX', value: ch });
+            i++;
+            continue;
+          }
+
+          // 7. Binary or Unary Operators (+, -, ×, ÷, ^)
+          if (BINARY_OPS.has(ch)) {
+            const prev = tokens[tokens.length - 1];
+            const isUnary =
+              !prev ||
+              prev.type === 'OPERATOR' ||
+              prev.type === 'UNARY' ||
+              prev.type === 'LPAREN' ||
+              prev.type === 'FUNC';
+
+            if (isUnary && (ch === '-' || ch === '+')) {
+              if (ch === '-') {
+                tokens.push({ type: 'UNARY', value: 'u-' });
+              }
+              // Unary '+' is a no-op
+            } else {
+              tokens.push({ type: 'OPERATOR', value: ch });
+            }
+            i++;
+            continue;
+          }
+
+          throw new Error('Syntax Error');
+        }
+
+        // Insert implicit multiplication where mathematically natural:
+        // e.g., 2(3), (2)(3), 2π, 2sin(30), 15%200 -> 15% × 200
+        const normalized = [];
+        for (let idx = 0; idx < tokens.length; idx++) {
+          const curr = tokens[idx];
+          const prev = normalized[normalized.length - 1];
+
+          if (prev) {
+            const prevCreatesValue =
+              prev.type === 'NUMBER' ||
+              prev.type === 'RPAREN' ||
+              prev.type === 'POSTFIX';
+
+            const currStartsValue =
+              curr.type === 'NUMBER' ||
+              curr.type === 'LPAREN' ||
+              curr.type === 'FUNC';
+
+            if (prevCreatesValue && currStartsValue) {
+              normalized.push({ type: 'OPERATOR', value: '×' });
+            }
+          }
+          normalized.push(curr);
+        }
+
+        return normalized;
+      }
+
+      /**
+       * Converts infix token stream to Reverse Polish Notation (RPN) using Shunting-Yard
+       * while also handling commercial percentage addition/subtraction (A + B% -> A + A*(B/100))
+       */
+      function toRPN(tokens) {
+        const output = [];
+        const stack = [];
+
+        const precedence = {
+          '+': 1,
+          '-': 1,
+          '×': 2,
+          '÷': 2,
+          'u-': 3,
+          '^': 4,
+          '²': 5,
+          '³': 5,
+          '!': 5,
+          '%': 5
+        };
+
+        const rightAssociative = new Set(['^', 'u-']);
+
+        for (let i = 0; i < tokens.length; i++) {
+          const token = tokens[i];
+
+          if (token.type === 'NUMBER') {
+            output.push(token);
+          } else if (token.type === 'FUNC') {
+            stack.push(token);
+          } else if (token.type === 'POSTFIX') {
+            // Check for commercial percentage pattern: A + B% or A - B%
+            const prevOp = stack[stack.length - 1];
+            const nextToken = tokens[i + 1];
+            const isTrailingAddSubPercent =
+              token.value === '%' &&
+              prevOp &&
+              prevOp.type === 'OPERATOR' &&
+              (prevOp.value === '+' || prevOp.value === '-') &&
+              (!nextToken || nextToken.type === 'RPAREN' || nextToken.value === '+' || nextToken.value === '-');
+
+            if (isTrailingAddSubPercent) {
+              output.push({ type: 'POSTFIX', value: '%_REL' });
+            } else {
+              while (
+                stack.length > 0 &&
+                (stack[stack.length - 1].type === 'POSTFIX' || stack[stack.length - 1].type === 'FUNC') &&
+                (precedence[stack[stack.length - 1].value] || 6) > precedence[token.value]
+              ) {
+                output.push(stack.pop());
+              }
+              output.push(token);
+            }
+          } else if (token.type === 'UNARY' || token.type === 'OPERATOR') {
+            const p1 = precedence[token.value];
+            while (stack.length > 0) {
+              const top = stack.pop();
+              if (top.type === 'LPAREN') {
+                stack.push(top);
+                break;
+              }
+
+              const p2 = top.type === 'FUNC' ? 6 : precedence[top.value];
+              if (
+                top.type === 'FUNC' ||
+                p2 > p1 ||
+                (p2 === p1 && !rightAssociative.has(token.value))
+              ) {
+                output.push(top);
+              } else {
+                stack.push(top);
+                break;
+              }
+            }
+            stack.push(token);
+          } else if (token.type === 'LPAREN') {
+            stack.push(token);
+          } else if (token.type === 'RPAREN') {
+            let foundLeft = false;
+            while (stack.length > 0) {
+              const top = stack.pop();
+              if (top.type === 'LPAREN') {
+                foundLeft = true;
+                break;
+              }
+              output.push(top);
+            }
+            if (!foundLeft) throw new Error('Mismatched ( )');
+            if (stack.length > 0 && stack[stack.length - 1].type === 'FUNC') {
+              output.push(stack.pop());
+            }
+          }
+        }
+
+        while (stack.length > 0) {
+          const top = stack.pop();
+          if (top.type === 'LPAREN' || top.type === 'RPAREN') {
+            throw new Error('Mismatched ( )');
+          }
+          output.push(top);
+        }
+
+        return output;
+      }
+
+      /**
+       * Evaluates an RPN queue respecting the active DEG/RAD angle unit
+       */
+      function evaluateRPN(rpn, angleUnit) {
+        const stack = [];
+        const toRad = (deg) => (deg * Math.PI) / 180;
+        const toDeg = (rad) => (rad * 180) / Math.PI;
+
+        for (const token of rpn) {
+          if (token.type === 'NUMBER') {
+            stack.push(token.value);
+            continue;
+          }
+
+          if (token.type === 'UNARY' && token.value === 'u-') {
+            if (stack.length < 1) throw new Error('Syntax Error');
+            stack.push(-stack.pop());
+            continue;
+          }
+
+          if (token.type === 'POSTFIX') {
+            if (stack.length < 1) throw new Error('Syntax Error');
+            const val = stack.pop();
+
+            switch (token.value) {
+              case '²':
+                stack.push(cleanPrecision(val * val));
+                break;
+              case '³':
+                stack.push(cleanPrecision(val * val * val));
+                break;
+              case '!':
+                stack.push(factorial(cleanPrecision(val)));
+                break;
+              case '%':
+                stack.push(cleanPrecision(val / 100));
+                break;
+              case '%_REL': {
+                const base = stack.length > 0 ? stack[stack.length - 1] : 1;
+                stack.push(cleanPrecision(base * (val / 100)));
+                break;
+              }
+              default:
+                throw new Error('Syntax Error');
+            }
+            continue;
+          }
+
+          if (token.type === 'FUNC') {
+            if (stack.length < 1) throw new Error('Syntax Error');
+            const arg = stack.pop();
+
+            switch (token.value) {
+              case 'sqrt':
+                if (arg < 0) throw new Error('Invalid input (√<0)');
+                stack.push(cleanPrecision(Math.sqrt(arg)));
+                break;
+              case 'abs':
+                stack.push(Math.abs(arg));
+                break;
+              case 'log':
+                if (arg <= 0) throw new Error('Invalid input (log≤0)');
+                stack.push(cleanPrecision(Math.log10(arg)));
+                break;
+              case 'ln':
+                if (arg <= 0) throw new Error('Invalid input (ln≤0)');
+                stack.push(cleanPrecision(Math.log(arg)));
+                break;
+              case 'sin': {
+                const rad = angleUnit === 'DEG' ? toRad(arg) : arg;
+                stack.push(cleanPrecision(Math.sin(rad)));
+                break;
+              }
+              case 'cos': {
+                const rad = angleUnit === 'DEG' ? toRad(arg) : arg;
+                stack.push(cleanPrecision(Math.cos(rad)));
+                break;
+              }
+              case 'tan': {
+                if (angleUnit === 'DEG') {
+                  const mod = ((arg % 180) + 180) % 180;
+                  if (Math.abs(mod - 90) < 1e-9) {
+                    throw new Error('Undefined (tan 90°)');
+                  }
+                } else {
+                  const cosVal = Math.cos(arg);
+                  if (Math.abs(cosVal) < 1e-12) {
+                    throw new Error('Undefined (tan)');
+                  }
+                }
+                const rad = angleUnit === 'DEG' ? toRad(arg) : arg;
+                stack.push(cleanPrecision(Math.tan(rad)));
+                break;
+              }
+              case 'asin': {
+                if (arg < -1 || arg > 1) throw new Error('Domain Error [-1,1]');
+                const rad = Math.asin(arg);
+                stack.push(cleanPrecision(angleUnit === 'DEG' ? toDeg(rad) : rad));
+                break;
+              }
+              case 'acos': {
+                if (arg < -1 || arg > 1) throw new Error('Domain Error [-1,1]');
+                const rad = Math.acos(arg);
+                stack.push(cleanPrecision(angleUnit === 'DEG' ? toDeg(rad) : rad));
+                break;
+              }
+              case 'atan': {
+                const rad = Math.atan(arg);
+                stack.push(cleanPrecision(angleUnit === 'DEG' ? toDeg(rad) : rad));
+                break;
+              }
+              default:
+                throw new Error('Syntax Error');
+            }
+            continue;
+          }
+
+          if (token.type === 'OPERATOR') {
+            if (stack.length < 2) throw new Error('Syntax Error');
+            const b = stack.pop();
+            const a = stack.pop();
+
+            switch (token.value) {
+              case '+':
+                stack.push(cleanPrecision(a + b));
+                break;
+              case '-':
+                stack.push(cleanPrecision(a - b));
+                break;
+              case '×':
+                stack.push(cleanPrecision(a * b));
+                break;
+              case '÷':
+                if (b === 0) throw new Error('Cannot divide by 0');
+                stack.push(cleanPrecision(a / b));
+                break;
+              case '^': {
+                const res = Math.pow(a, b);
+                if (Number.isNaN(res)) throw new Error('Domain Error');
+                if (!Number.isFinite(res)) throw new Error('Overflow');
+                stack.push(cleanPrecision(res));
+                break;
+              }
+              default:
+                throw new Error('Syntax Error');
+            }
+          }
+        }
+
+        if (stack.length !== 1) {
+          throw new Error('Syntax Error');
+        }
+
+        const finalVal = cleanPrecision(stack[0]);
+        if (!Number.isFinite(finalVal)) {
+          throw new Error('Overflow');
+        }
+        return finalVal;
+      }
+
+      /**
+       * Auto-balances any unclosed left parentheses at evaluation time
+       */
+      function balanceParentheses(expr) {
+        let openCount = 0;
+        for (const ch of expr) {
+          if (ch === '(') openCount++;
+          else if (ch === ')' && openCount > 0) openCount--;
+        }
+        return openCount > 0 ? expr + ')'.repeat(openCount) : expr;
+      }
+
+      /**
+       * Formats a numeric result for clean, legible display
+       */
+      function formatNumber(num) {
+        if (!Number.isFinite(num)) return 'Overflow';
+        const abs = Math.abs(num);
+        if (abs !== 0 && (abs >= 1e12 || abs < 1e-9)) {
+          return num.toExponential(6).replace(/\.?0+e/, 'e');
+        }
+        const cleaned = cleanPrecision(num);
+        return String(cleaned);
+      }
+
+      /**
+       * Evaluates a full expression string safely
+       */
+      function evaluateExpression(rawExpr, angleUnit = state.angleUnit) {
+        const balanced = balanceParentheses(rawExpr.trim());
+        const tokens = tokenize(balanced);
+        if (tokens.length === 0) return { value: 0, formatted: '0', balancedExpr: '0' };
+        const rpn = toRPN(tokens);
+        const numericValue = evaluateRPN(rpn, angleUnit);
+        return {
+          value: numericValue,
+          formatted: formatNumber(numericValue),
+          balancedExpr: balanced
+        };
+      }
+
+      /* ------------------------------------------------------------------------
+         5. DISPLAY & UI RENDERING
+         ------------------------------------------------------------------------ */
+      function prettifyExpression(expr) {
+        if (!expr) return '';
+        return expr
+          .replace(/asin\(/g, 'sin⁻¹(')
+          .replace(/acos\(/g, 'cos⁻¹(')
+          .replace(/atan\(/g, 'tan⁻¹(')
+          .replace(/sqrt\(/g, '√(')
+          .replace(/abs\(/g, 'abs(')
+          .replace(/\+/g, ' + ')
+          .replace(/([0-9πe)²³!%])-/g, '$1 - ')
+          .replace(/×/g, ' × ')
+          .replace(/÷/g, ' ÷ ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      function adjustPrimaryFontSize(text, isError) {
+        displayPrimary.classList.remove('size-md', 'size-sm', 'size-xs', 'is-error');
+        if (isError) {
+          displayPrimary.classList.add('is-error');
+          return;
+        }
+        const len = text.length;
+        if (len > 16) {
+          displayPrimary.classList.add('size-xs');
+        } else if (len > 12) {
+          displayPrimary.classList.add('size-sm');
+        } else if (len > 9) {
+          displayPrimary.classList.add('size-md');
+        }
+      }
+
+      function updateDisplay() {
+        clearBtn.textContent = state.expression.length > 0 && !state.justEvaluated ? 'C' : 'AC';
+
+        if (state.isError) {
+          displayPrimary.textContent = state.result;
+          displaySecondary.textContent = prettifyExpression(state.lastExpression);
+          adjustPrimaryFontSize(state.result, true);
+          displayStatusBadge.textContent = 'ERR';
+          displayStatusBadge.classList.add('display-badge--visible');
+          return;
+        }
+
+        if (state.justEvaluated) {
+          displayPrimary.textContent = state.result || '0';
+          displaySecondary.textContent = prettifyExpression(state.lastExpression);
+          adjustPrimaryFontSize(state.result || '0', false);
+          displayStatusBadge.textContent = state.lastExpression ? 'ANS' : '';
+          displayStatusBadge.classList.toggle('display-badge--visible', Boolean(state.lastExpression));
+        } else {
+          const prettyActive = prettifyExpression(state.expression) || '0';
+          displayPrimary.textContent = prettyActive;
+          adjustPrimaryFontSize(prettyActive, false);
+
+          // Live preview in the bottom line when a compound expression is being typed
+          let livePreview = '';
+          if (state.expression.length > 1 && /[+\-×÷^²³!%√a-z]/i.test(state.expression)) {
+            try {
+              const evalObj = evaluateExpression(state.expression);
+              if (evalObj.formatted !== state.expression) {
+                livePreview = '= ' + evalObj.formatted;
+              }
+            } catch {
+              livePreview = state.lastExpression ? `Ans = ${state.result}` : '';
+            }
+          } else if (state.lastExpression) {
+            livePreview = `Ans = ${state.result}`;
+          }
+
+          displaySecondary.textContent = livePreview;
+          displayStatusBadge.classList.remove('display-badge--visible');
+        }
+
+        // Scroll display horizontally to keep latest characters visible
+        displayPrimary.scrollLeft = displayPrimary.scrollWidth;
+        displaySecondary.scrollLeft = displaySecondary.scrollWidth;
+      }
+
+      /* ------------------------------------------------------------------------
+         6. INPUT HANDLERS & CALCULATOR ACTIONS
+         ------------------------------------------------------------------------ */
+      function resetErrorIfNeeded() {
+        if (state.isError) {
+          state.isError = false;
+          state.expression = '';
+          state.result = '0';
+          state.justEvaluated = false;
+        }
+      }
+
+      function getTrailingNumberMatch(expr) {
+        return expr.match(/(-?\d+\.?\d*(?:E[+-]?\d+)?)$/);
+      }
+
+      function handleDigit(digit) {
+        resetErrorIfNeeded();
+
+        if (state.justEvaluated) {
+          state.expression = digit;
+          state.justEvaluated = false;
+          updateDisplay();
+          return;
+        }
+
+        // Prevent redundant leading zeros like 007 -> 7
+        const trailingMatch = state.expression.match(/(?:^|[+\-×÷^(])0$/);
+        if (trailingMatch) {
+          if (digit === '0') return;
+          state.expression = state.expression.slice(0, -1) + digit;
+        } else {
+          state.expression += digit;
+        }
+
+        updateDisplay();
+      }
+
+      function handleDecimal() {
+        resetErrorIfNeeded();
+
+        if (state.justEvaluated) {
+          state.expression = '0.';
+          state.justEvaluated = false;
+          updateDisplay();
+          return;
+        }
+
+        const currentNum = state.expression.split(/[+\-×÷^()]/).pop();
+        if (currentNum.includes('.') || currentNum.includes('E')) {
+          return; // Prevent duplicate decimals in the same number token
+        }
+
+        if (currentNum === '' || /[a-z√πe²³!%)]$/i.test(state.expression)) {
+          state.expression += '0.';
+        } else {
+          state.expression += '.';
+        }
+
+        updateDisplay();
+      }
+
+      function handleOperator(op) {
+        resetErrorIfNeeded();
+
+        if (state.justEvaluated) {
+          state.expression = (state.result || '0') + op;
+          state.justEvaluated = false;
+          updateDisplay();
+          return;
+        }
+
+        if (state.expression === '') {
+          if (op === '-') {
+            state.expression = '-';
+          } else {
+            state.expression = '0' + op;
+          }
+          updateDisplay();
+          return;
+        }
+
+        // Handle consecutive operators intelligently
+        if (/[+\-×÷^]$/.test(state.expression)) {
+          // Allow negative sign right after ×, ÷, ^
+          if (op === '-' && /[×÷^]$/.test(state.expression)) {
+            state.expression += '-';
+          } else {
+            state.expression = state.expression.replace(/[+\-×÷^]+$/, op);
+          }
+          updateDisplay();
+          return;
+        }
+
+        if (state.expression.endsWith('(')) {
+          if (op === '-') {
+            state.expression += '-';
+            updateDisplay();
+          }
+          return;
+        }
+
+        state.expression += op;
+        updateDisplay();
+      }
+
+      function handleNegate() {
+        resetErrorIfNeeded();
+
+        if (state.justEvaluated) {
+          if (!state.result || state.result === '0') return;
+          state.result = state.result.startsWith('-')
+            ? state.result.slice(1)
+            : '-' + state.result;
+          state.expression = state.result;
+          state.justEvaluated = false;
+          updateDisplay();
+          return;
+        }
+
+        if (!state.expression || state.expression === '0') {
+          state.expression = '-';
+          updateDisplay();
+          return;
+        }
+
+        if (state.expression === '-') {
+          state.expression = '';
+          updateDisplay();
+          return;
+        }
+
+        // Toggle (-num) wrapper or leading minus on the current number token
+        const wrappedMatch = state.expression.match(/\(-(\d+\.?\d*)\)$/);
+        if (wrappedMatch) {
+          state.expression =
+            state.expression.slice(0, -wrappedMatch[0].length) + wrappedMatch[1];
+          updateDisplay();
+          return;
+        }
+
+        const numMatch = state.expression.match(/(\d+\.?\d*)$/);
+        if (numMatch) {
+          const idx = state.expression.length - numMatch[0].length;
+          const before = state.expression.slice(0, idx);
+          if (before === '-') {
+            state.expression = numMatch[0];
+          } else if (/[×÷^(]$/.test(before) && before.endsWith('-')) {
+            state.expression = before.slice(0, -1) + numMatch[0];
+          } else {
+            state.expression = before + '(-' + numMatch[0] + ')';
+          }
+          updateDisplay();
+        }
+      }
+
+      function handlePercent() {
+        resetErrorIfNeeded();
+
+        if (state.justEvaluated) {
+          state.expression = (state.result || '0') + '%';
+          state.justEvaluated = false;
+          updateDisplay();
+          return;
+        }
+
+        if (/[\d)πe]$/.test(state.expression)) {
+          state.expression += '%';
+          updateDisplay();
+        }
+      }
+
+      function handleFunction(funcName) {
+        resetErrorIfNeeded();
+
+        const prefix = funcName === 'sqrt' ? '√(' : `${funcName}(`;
+
+        if (state.justEvaluated) {
+          state.expression = prefix;
+          state.justEvaluated = false;
+          updateDisplay();
+          return;
+        }
+
+        // If the entire expression is a single number, wrap it directly
+        if (/^-?\d+\.?\d*$/.test(state.expression) || state.expression === 'π' || state.expression === 'e') {
+          state.expression = `${prefix}${state.expression})`;
+          updateDisplay();
+          return;
+        }
+
+        state.expression += prefix;
+        updateDisplay();
+      }
+
+      function handlePostfix(symbol) {
+        resetErrorIfNeeded();
+
+        if (state.justEvaluated) {
+          state.expression = (state.result || '0') + symbol;
+          state.justEvaluated = false;
+          updateDisplay();
+          return;
+        }
+
+        if (/[\d)πe]$/.test(state.expression)) {
+          state.expression += symbol;
+          updateDisplay();
+        }
+      }
+
+      function handleReciprocal() {
+        resetErrorIfNeeded();
+
+        if (state.justEvaluated) {
+          const base = state.result || '0';
+          state.expression = `1÷(${base})`;
+          state.justEvaluated = false;
+          handleCalculate();
+          return;
+        }
+
+        if (/^-?\d+\.?\d*$/.test(state.expression)) {
+          state.expression = `1÷(${state.expression})`;
+          updateDisplay();
+          return;
+        }
+
+        state.expression += '1÷(';
+        updateDisplay();
+      }
+
+      function handleConstant(constSymbol) {
+        resetErrorIfNeeded();
+
+        if (state.justEvaluated) {
+          state.expression = constSymbol;
+          state.justEvaluated = false;
+          updateDisplay();
+          return;
+        }
+
+        state.expression += constSymbol;
+        updateDisplay();
+      }
+
+      function handleExpNotation() {
+        resetErrorIfNeeded();
+
+        if (state.justEvaluated) {
+          state.expression = (state.result || '1') + 'E';
+          state.justEvaluated = false;
+          updateDisplay();
+          return;
+        }
+
+        const trailing = getTrailingNumberMatch(state.expression);
+        if (trailing && !trailing[0].includes('E')) {
+          state.expression += 'E';
+          updateDisplay();
+        }
+      }
+
+      function handleParenOpen() {
+        resetErrorIfNeeded();
+
+        if (state.justEvaluated) {
+          state.expression = '(';
+          state.justEvaluated = false;
+          updateDisplay();
+          return;
+        }
+
+        state.expression += '(';
+        updateDisplay();
+      }
+
+      function handleParenClose() {
+        resetErrorIfNeeded();
+        if (state.justEvaluated) return;
+
+        let openCount = 0;
+        for (const ch of state.expression) {
+          if (ch === '(') openCount++;
+          else if (ch === ')') openCount--;
+        }
+
+        if (openCount > 0 && /[\d)πe²³!%]$/.test(state.expression)) {
+          state.expression += ')';
+          updateDisplay();
+        }
+      }
+
+      function handleBackspace() {
+        if (state.isError) {
+          handleClear();
+          return;
+        }
+
+        if (state.justEvaluated) {
+          state.expression = state.result || '';
+          state.lastExpression = '';
+          state.justEvaluated = false;
+          updateDisplay();
+          return;
+        }
+
+        if (!state.expression) return;
+
+        // Delete multi-character function prefixes like "asin(" or "sqrt(" or "√(" as a single unit
+        const funcPrefixMatch = state.expression.match(/(?:asin|acos|atan|sin|cos|tan|log|ln|abs|√)\($/);
+        if (funcPrefixMatch) {
+          state.expression = state.expression.slice(0, -funcPrefixMatch[0].length);
+        } else {
+          state.expression = state.expression.slice(0, -1);
+        }
+
+        updateDisplay();
+      }
+
+      function handleClear() {
+        state.expression = '';
+        state.lastExpression = '';
+        state.result = '0';
+        state.justEvaluated = true;
+        state.isError = false;
+        updateDisplay();
+      }
+
+      function handleCalculate() {
+        if (state.isError) {
+          handleClear();
+          return;
+        }
+
+        if (state.justEvaluated || !state.expression) {
+          return;
+        }
+
+        // Strip trailing binary operator if user pressed '=' right after '+'
+        const cleanedInput = state.expression.replace(/[+\-×÷^E]+$/, '');
+        if (!cleanedInput) return;
+
+        try {
+          const evaluated = evaluateExpression(cleanedInput, state.angleUnit);
+          state.lastExpression = evaluated.balancedExpr;
+          state.result = evaluated.formatted;
+          state.expression = '';
+          state.justEvaluated = true;
+          state.isError = false;
+        } catch (err) {
+          state.lastExpression = cleanedInput;
+          state.result = err.message || 'Syntax Error';
+          state.justEvaluated = true;
+          state.isError = true;
+        }
+
+        updateDisplay();
+      }
+
+      /* ------------------------------------------------------------------------
+         7. THEME, MODE, ANGLE & SOUND PREFERENCES
+         ------------------------------------------------------------------------ */
+      function setTheme(theme, playClick = false) {
+        state.theme = theme === 'dark' ? 'dark' : 'light';
+        rootEl.setAttribute('data-theme', state.theme);
+        themeBtns.forEach((btn) => {
+          btn.setAttribute('aria-pressed', String(btn.dataset.themeSelect === state.theme));
+        });
+        if (playClick) SoundEngine.playKeyClick('switch');
+        try {
+          localStorage.setItem(STORAGE_KEYS.THEME, state.theme);
+        } catch {
+          // Ignore storage restrictions
+        }
+      }
+
+      function setMode(mode, playClick = false) {
+        state.mode = mode === 'scientific' ? 'scientific' : 'standard';
+        rootEl.setAttribute('data-mode', state.mode);
+        modeBtns.forEach((btn) => {
+          btn.setAttribute('aria-pressed', String(btn.dataset.modeSelect === state.mode));
+        });
+        if (playClick) SoundEngine.playKeyClick('switch');
+        try {
+          localStorage.setItem(STORAGE_KEYS.MODE, state.mode);
+        } catch {
+          // Ignore storage restrictions
+        }
+      }
+
+      function setAngleUnit(unit, playClick = false) {
+        state.angleUnit = unit === 'RAD' ? 'RAD' : 'DEG';
+        displayAngleBadge.textContent = state.angleUnit;
+        angleBtns.forEach((btn) => {
+          btn.setAttribute('aria-pressed', String(btn.dataset.angleSelect === state.angleUnit));
+        });
+        if (playClick) SoundEngine.playKeyClick('switch');
+        try {
+          localStorage.setItem(STORAGE_KEYS.ANGLE, state.angleUnit);
+        } catch {
+          // Ignore storage restrictions
+        }
+        updateDisplay();
+      }
+
+      function setSoundEnabled(enabled, playFeedback = false) {
+        state.soundEnabled = Boolean(enabled);
+        soundToggleBtn.setAttribute('aria-pressed', String(state.soundEnabled));
+        soundIconOn.style.display = state.soundEnabled ? 'inline-block' : 'none';
+        soundIconOff.style.display = state.soundEnabled ? 'none' : 'inline-block';
+        soundToggleLabel.textContent = state.soundEnabled ? 'Click' : 'Muted';
+
+        if (playFeedback && state.soundEnabled) {
+          SoundEngine.playKeyClick('switch');
+        }
+
+        try {
+          localStorage.setItem(STORAGE_KEYS.SOUND, state.soundEnabled ? 'on' : 'off');
+        } catch {
+          // Ignore storage restrictions
+        }
+      }
+
+      function loadPreferences() {
+        try {
+          const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
+          if (savedTheme === 'light' || savedTheme === 'dark') {
+            setTheme(savedTheme, false);
+          }
+
+          const savedMode = localStorage.getItem(STORAGE_KEYS.MODE);
+          if (savedMode === 'standard' || savedMode === 'scientific') {
+            setMode(savedMode, false);
+          }
+
+          const savedAngle = localStorage.getItem(STORAGE_KEYS.ANGLE);
+          if (savedAngle === 'DEG' || savedAngle === 'RAD') {
+            setAngleUnit(savedAngle, false);
+          }
+
+          const savedSound = localStorage.getItem(STORAGE_KEYS.SOUND);
+          if (savedSound === 'on' || savedSound === 'off') {
+            setSoundEnabled(savedSound === 'on', false);
+          }
+        } catch {
+          // Fallback to defaults
+        }
+      }
+
+      /* ------------------------------------------------------------------------
+         8. EVENT LISTENERS (POINTER & KEYBOARD)
+         ------------------------------------------------------------------------ */
+      function getButtonSoundCategory(btn) {
+        if (btn.dataset.action === 'calculate') return 'equals';
+        if (btn.classList.contains('calc-btn--num')) return 'num';
+        if (btn.classList.contains('calc-btn--op')) return 'op';
+        if (btn.classList.contains('calc-btn--util')) return 'util';
+        if (btn.classList.contains('calc-btn--sci')) return 'sci';
+        return 'num';
+      }
+
+      function dispatchButtonAction(btn) {
+        const action = btn.dataset.action;
+        if (!action) return;
+
+        // Play tactile mechanical key click on press
+        SoundEngine.playKeyClick(getButtonSoundCategory(btn));
+
+        switch (action) {
+          case 'digit':
+            handleDigit(btn.dataset.digit);
+            break;
+          case 'decimal':
+            handleDecimal();
+            break;
+          case 'operator':
+            handleOperator(btn.dataset.operator);
+            break;
+          case 'negate':
+            handleNegate();
+            break;
+          case 'percent':
+            handlePercent();
+            break;
+          case 'clear':
+            handleClear();
+            break;
+          case 'backspace':
+            handleBackspace();
+            break;
+          case 'calculate':
+            handleCalculate();
+            break;
+          case 'func':
+            handleFunction(btn.dataset.func);
+            break;
+          case 'postfix':
+            handlePostfix(btn.dataset.postfix);
+            break;
+          case 'reciprocal':
+            handleReciprocal();
+            break;
+          case 'constant':
+            handleConstant(btn.dataset.constant);
+            break;
+          case 'exp-notation':
+            handleExpNotation();
+            break;
+          case 'paren-open':
+            handleParenOpen();
+            break;
+          case 'paren-close':
+            handleParenClose();
+            break;
+        }
+      }
+
+      calcBtns.forEach((btn) => {
+        btn.addEventListener('click', () => dispatchButtonAction(btn));
+      });
+
+      document.getElementById('backspaceBtn').addEventListener('click', () => {
+        SoundEngine.playKeyClick('util');
+        handleBackspace();
+      });
+
+      themeBtns.forEach((btn) => {
+        btn.addEventListener('click', () => setTheme(btn.dataset.themeSelect, true));
+      });
+
+      modeBtns.forEach((btn) => {
+        btn.addEventListener('click', () => setMode(btn.dataset.modeSelect, true));
+      });
+
+      angleBtns.forEach((btn) => {
+        btn.addEventListener('click', () => setAngleUnit(btn.dataset.angleSelect, true));
+      });
+
+      soundToggleBtn.addEventListener('click', () => {
+        setSoundEnabled(!state.soundEnabled, true);
+      });
+
+      // Modal Controls
+      openShortcutsBtn.addEventListener('click', () => {
+        SoundEngine.playKeyClick('switch');
+        shortcutsModal.classList.add('is-open');
+      });
+      closeShortcutsBtn.addEventListener('click', () => {
+        SoundEngine.playKeyClick('switch');
+        shortcutsModal.classList.remove('is-open');
+      });
+      shortcutsModal.addEventListener('click', (e) => {
+        if (e.target === shortcutsModal) {
+          shortcutsModal.classList.remove('is-open');
+        }
+      });
+
+      // Visual press animation helper for physical keyboard events
+      function flashButton(selector) {
+        const btn = document.querySelector(selector);
+        if (!btn) return;
+        btn.classList.add('is-pressed');
+        setTimeout(() => btn.classList.remove('is-pressed'), 130);
+      }
+
+      // Physical Keyboard Support (with matching tactile clicks)
+      window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+        if (shortcutsModal.classList.contains('is-open')) {
+          if (e.key === 'Escape') {
+            SoundEngine.playKeyClick('switch');
+            shortcutsModal.classList.remove('is-open');
+          }
+          return;
+        }
+
+        const key = e.key;
+
+        if (/^[0-9]$/.test(key)) {
+          e.preventDefault();
+          SoundEngine.playKeyClick('num');
+          flashButton(`[data-digit="${key}"]`);
+          handleDigit(key);
+          return;
+        }
+
+        switch (key) {
+          case '.':
+          case ',':
+            e.preventDefault();
+            SoundEngine.playKeyClick('num');
+            flashButton('[data-action="decimal"]');
+            handleDecimal();
+            break;
+          case '+':
+            e.preventDefault();
+            SoundEngine.playKeyClick('op');
+            flashButton('[data-operator="+"]');
+            handleOperator('+');
+            break;
+          case '-':
+            e.preventDefault();
+            SoundEngine.playKeyClick('op');
+            flashButton('[data-operator="-"]');
+            handleOperator('-');
+            break;
+          case '*':
+            e.preventDefault();
+            SoundEngine.playKeyClick('op');
+            flashButton('[data-operator="×"]');
+            handleOperator('×');
+            break;
+          case '/':
+            e.preventDefault();
+            SoundEngine.playKeyClick('op');
+            flashButton('[data-operator="÷"]');
+            handleOperator('÷');
+            break;
+          case '^':
+            e.preventDefault();
+            SoundEngine.playKeyClick('sci');
+            flashButton('[data-operator="^"]');
+            handleOperator('^');
+            break;
+          case '%':
+            e.preventDefault();
+            SoundEngine.playKeyClick('util');
+            flashButton('[data-action="percent"]');
+            handlePercent();
+            break;
+          case '!':
+            e.preventDefault();
+            SoundEngine.playKeyClick('sci');
+            flashButton('[data-postfix="!"]');
+            handlePostfix('!');
+            break;
+          case '(':
+            e.preventDefault();
+            SoundEngine.playKeyClick('sci');
+            flashButton('[data-action="paren-open"]');
+            handleParenOpen();
+            break;
+          case ')':
+            e.preventDefault();
+            SoundEngine.playKeyClick('sci');
+            flashButton('[data-action="paren-close"]');
+            handleParenClose();
+            break;
+          case 'Enter':
+          case '=':
+            e.preventDefault();
+            SoundEngine.playKeyClick('equals');
+            flashButton('[data-action="calculate"]');
+            handleCalculate();
+            break;
+          case 'Backspace':
+            e.preventDefault();
+            SoundEngine.playKeyClick('util');
+            handleBackspace();
+            break;
+          case 'Escape':
+          case 'Delete':
+            e.preventDefault();
+            SoundEngine.playKeyClick('util');
+            flashButton('[data-action="clear"]');
+            handleClear();
+            break;
+          case 'p':
+          case 'P':
+            e.preventDefault();
+            SoundEngine.playKeyClick('sci');
+            flashButton('[data-constant="π"]');
+            handleConstant('π');
+            break;
+          case 'm':
+          case 'M':
+            e.preventDefault();
+            setSoundEnabled(!state.soundEnabled, true);
+            break;
+        }
+      });
+
+      /* ------------------------------------------------------------------------
+         9. INITIALIZATION
+         ------------------------------------------------------------------------ */
+      loadPreferences();
+      updateDisplay();
+    })();
+  </script>
+</body>
+</html>
